@@ -1,2 +1,3 @@
 # ReactNative-Utilities
-Repository to be used as a storage of utility React Native Components, Hooks, etc.
+
+Repository to be used as a store for utility React Native Components, Hooks, etc.
