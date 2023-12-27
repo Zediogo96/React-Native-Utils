@@ -21,7 +21,7 @@ import { fonts } from "../styles";
 
 type RegularTextProps = {
 	children: ReactNode;
-	style?: TextStyle;
+	style?: TextStyle | TextStyle[];
 };
 
 const RegularText = ({ children, style }: RegularTextProps) => {
