@@ -1,49 +1,31 @@
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import React, { memo, useEffect, useMemo, useRef } from "react";
-import {
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import Colors from "@/constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
+import { IconProps } from "@expo/vector-icons/build/createIconSet";
+import { Tabs } from "expo-router";
+import React, { memo, useEffect } from "react";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import MaterialIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withSpring,
     withTiming,
 } from "react-native-reanimated";
-import useEmployeeData from "../../React-Query/employee";
-import I18n from "../../locales";
-import { useSelector, RootStateOrAny } from "react-redux";
-
-type TabArrType = {
-    route: string;
-    label: string;
-    icon: string;
-    component: React.FC | React.FC<any>;
-    color: string;
-    filterField: string;
-};
 
 type TabProps = {
+    id: number | string;
     item: {
         route: string;
         label: string;
-        icon: string;
-        component: React.FC;
+        icon: IconProps<any>["name"];
         color: string;
     };
-    onPress: () => void;
+    onPress?: () => void;
     accessibilityState: { selected: boolean };
 };
 
-const Tab = createBottomTabNavigator();
-
 const TabButton: React.FC<TabProps> = (props: TabProps) => {
-    const { item, onPress, accessibilityState } = props;
+    const { id, item, onPress, accessibilityState } = props;
     const focused = accessibilityState.selected;
 
     const scale = useSharedValue(focused ? 0 : 1);
@@ -51,7 +33,7 @@ const TabButton: React.FC<TabProps> = (props: TabProps) => {
 
     useEffect(() => {
         const startAnimation = () => {
-            opacity.value = withTiming(focused ? 1 : 0, { duration: 550 });
+            opacity.value = withTiming(focused ? 1 : 0, { duration: 450 });
             scale.value = withSpring(focused ? 1 : 0, {
                 damping: 10,
                 stiffness: 90,
@@ -74,6 +56,7 @@ const TabButton: React.FC<TabProps> = (props: TabProps) => {
 
     return (
         <TouchableOpacity
+            id={id.toString()}
             onPress={onPress}
             activeOpacity={1}
             style={[styles.container, { flex: focused ? 1 : 0.65 }]}
@@ -87,10 +70,10 @@ const TabButton: React.FC<TabProps> = (props: TabProps) => {
                     ]}
                 />
                 <View style={styles.btn}>
-                    <MaterialIcon
+                    <Ionicons
                         name={item.icon}
                         size={25}
-                        color={focused ? "white" : "black"}
+                        color={focused ? "white" : Colors.mainTheme.darkOlive}
                     />
                     <Animated.View style={animeTextStyle}>
                         {focused && (
@@ -111,43 +94,59 @@ const TabButton: React.FC<TabProps> = (props: TabProps) => {
     );
 };
 
+const TabsDataArray: TabProps["item"][] = [
+    {
+        route: "home",
+        label: "Home",
+        icon: "home",
+        color: Colors.mainTheme.oliveGreen,
+    },
+    {
+        route: "ChatRooms",
+        label: "Chat Rooms",
+        icon: "chatbubbles",
+        color: Colors.mainTheme.oliveGreen,
+    },
+    {
+        route: "settings",
+        label: "Settings",
+        icon: "settings",
+        color: Colors.mainTheme.oliveGreen,
+    },
+];
+
 function AnimatedBottomTabs() {
-    const { data: employee, isLoading } = useEmployeeData();
-
-    const language = useSelector((state: RootStateOrAny) => state.language);
-    I18n.locale = language.preferred;
-
-    const TabArr: TabArrType[] = useRef([]).current;
-
-    const allowedTabs = useMemo(() => {
-        return TabArr.filter((item) => validatePermission(item));
-    }, []);
-
     return (
         <>
-            <Tab.Navigator
+            <Tabs
                 screenOptions={{
                     headerShown: false,
                     tabBarStyle: styles.tabBarStyle,
                 }}
             >
-                {allowedTabs.map((item: TabArrType, index: number) => {
-                    return (
-                        <Tab.Screen
-                            key={index}
-                            name={item.route}
-                            component={item.component as any}
-                            options={{
-                                tabBarShowLabel: false,
-                                // @ts-expect-error - item is not assignable to type 'RouteProp<ParamListBase, string>'
-                                tabBarButton: (props) => (
-                                    <TabButton {...props} item={item} />
-                                ),
-                            }}
-                        />
-                    );
-                })}
-            </Tab.Navigator>
+                {TabsDataArray.map((item, index) => (
+                    <Tabs.Screen
+                        name={item.route}
+                        options={{
+                            tabBarButton: (props) => {
+                                return (
+                                    // @ts-expect-error : TS is not recognizing the props
+                                    <TabButton
+                                        id={index}
+                                        item={{
+                                            route: item.route,
+                                            label: item.label,
+                                            icon: item.icon,
+                                            color: item.color,
+                                        }}
+                                        {...props}
+                                    />
+                                );
+                            },
+                        }}
+                    />
+                ))}
+            </Tabs>
         </>
     );
 }
@@ -170,8 +169,8 @@ const styles = StyleSheet.create({
 
     tabBarStyle: {
         backgroundColor: "white",
-        borderRadiusTopLeft: 16,
-        borderRadiusTopRight: 16,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
         bottom: 0,
         height: Platform.OS === "ios" ? 75 : 60,
         paddingTop: 10,
