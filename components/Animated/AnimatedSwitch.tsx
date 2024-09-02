@@ -9,6 +9,9 @@ import Animated, {
    useDerivedValue,
 } from "react-native-reanimated";
 
+// @ts-expect-error: ReactNativeHapticFeedback is not typed
+import ReactNativeHapticFeedback from "react-native-haptic-feedback";
+
 type CustomSwitchProps = {
    activeColor?: string;
    inActiveColor?: string;
@@ -76,6 +79,7 @@ const CustomSwitch: React.FC<CustomSwitchProps> = (props) => {
       <TouchableWithoutFeedback
          style={contentContainerStyleOverride}
          onPress={() => {
+            ReactNativeHapticFeedback.trigger("impactLight");
             setIsActive && setIsActive(!isActive);
          }}
       >
